@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthProfile } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,19 +21,12 @@ interface Props {
 
 export default async function EditPlaylistPage({ params }: Props) {
   const { id } = await params;
+
+  const profile = await getAuthProfile();
+  if (!profile) redirect("/login");
+  if (!profile.is_admin) redirect("/");
+
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("is_admin")
-    .eq("auth_id", user.id)
-    .single();
-  if (!profile?.is_admin) redirect("/");
 
   const { data: playlist } = await supabase
     .from("playlists")

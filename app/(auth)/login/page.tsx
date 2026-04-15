@@ -17,10 +17,18 @@ export default function LoginPage() {
   );
 }
 
+/** Validate redirect target is a safe relative path (not an open redirect). */
+function sanitizeRedirect(raw: string | null): string {
+  if (!raw) return "/feed";
+  // Must start with exactly one slash — reject protocol-relative (//), absolute URLs, etc.
+  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+  return "/feed";
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? "/feed";
+  const redirectTo = sanitizeRedirect(searchParams.get("redirectTo"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,13 +53,23 @@ function LoginForm() {
 
   async function handleGoogleLogin() {
     setLoading(true);
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=${redirectTo}`,
-      },
-    });
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+        },
+      });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    } catch {
+      setError("Failed to start Google login. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (

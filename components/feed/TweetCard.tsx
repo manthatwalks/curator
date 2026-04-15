@@ -7,7 +7,6 @@ export interface TweetCardData {
   text: string;
   media_urls: string[];
   published_at: string;
-  from_playlist?: string;
   twitter_accounts: {
     handle: string;
     display_name: string;
@@ -23,9 +22,7 @@ interface TweetCardProps {
 // Curator's core promise: content without engagement pressure.
 export default function TweetCard({ tweet }: TweetCardProps) {
   const { twitter_accounts: author } = tweet;
-  const mediaUrls = Array.isArray(tweet.media_urls)
-    ? (tweet.media_urls as string[])
-    : [];
+  const mediaUrls = tweet.media_urls;
 
   const initials = author.display_name.slice(0, 2).toUpperCase();
 
@@ -86,13 +83,6 @@ export default function TweetCard({ tweet }: TweetCardProps) {
         </div>
       )}
 
-      {/* Playlist badge (from_playlist populated in feed view) */}
-      {tweet.from_playlist && (
-        <p className="text-xs text-muted-foreground pt-0.5">
-          From{" "}
-          <span className="font-medium text-foreground">{tweet.from_playlist}</span>
-        </p>
-      )}
     </article>
   );
 }

@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/tweets/sync",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/subscriptions/cleanup",
+      "schedule": "0 3 * * 0"
+    }
+  ]
+}

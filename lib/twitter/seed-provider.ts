@@ -6,6 +6,7 @@ import type {
   FetchTweetsResult,
   TweetData,
 } from "./types";
+import type { ApiBudget } from "./budget";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function encodeCursor(publishedAt: string, id: string): string {
@@ -34,7 +35,7 @@ export class SeedProvider implements ITweetProvider {
       .eq("handle", cleanHandle)
       .single();
 
-    if (!account) return { tweets: [], nextCursor: null };
+    if (!account) return { tweets: [], nextCursor: null, readsConsumed: 0 };
 
     let query = supabase
       .from("tweets")
@@ -59,7 +60,7 @@ export class SeedProvider implements ITweetProvider {
 
     const { data: rows, error } = await query;
 
-    if (error || !rows) return { tweets: [], nextCursor: null };
+    if (error || !rows) return { tweets: [], nextCursor: null, readsConsumed: 0 };
 
     const author: CreatorAccount = {
       id: account.id,
@@ -83,7 +84,7 @@ export class SeedProvider implements ITweetProvider {
         ? encodeCursor(lastRow.published_at, lastRow.id)
         : null;
 
-    return { tweets, nextCursor };
+    return { tweets, nextCursor, readsConsumed: 0 };
   }
 
   async fetchAccount(handle: string): Promise<CreatorAccount | null> {
@@ -104,6 +105,15 @@ export class SeedProvider implements ITweetProvider {
       displayName: data.display_name,
       bio: data.bio,
       avatarUrl: data.avatar_url,
+    };
+  }
+
+  async getBudget(): Promise<ApiBudget> {
+    return {
+      monthlyLimit: Infinity,
+      used: 0,
+      remaining: Infinity,
+      periodStart: "N/A",
     };
   }
 }

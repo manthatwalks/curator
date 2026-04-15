@@ -1,15 +1,25 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-function generateUsername(email: string): string {
+/** Generate a collision-resistant username from email + user ID. */
+function generateUsername(email: string, userId: string): string {
   const prefix = email.split("@")[0];
-  return prefix.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 30) || "user";
+  const base = prefix.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 22) || "user";
+  // Append short UUID fragment to prevent collisions between similar emails
+  return `${base}_${userId.slice(0, 8)}`;
+}
+
+/** Validate redirect target is a safe relative path (not an open redirect). */
+function sanitizeNext(raw: string | null): string {
+  if (!raw) return "/feed";
+  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+  return "/feed";
 }
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/feed";
+  const next = sanitizeNext(searchParams.get("next"));
 
   if (code) {
     const supabase = await createClient();
@@ -27,7 +37,7 @@ export async function GET(request: Request) {
           {
             auth_id: user.id,
             email: user.email!,
-            username: generateUsername(user.email!),
+            username: generateUsername(user.email!, user.id),
             name:
               (user.user_metadata?.full_name as string) ??
               user.email!.split("@")[0],

@@ -3,23 +3,12 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireAuthProfile } from "@/lib/supabase/auth";
 
 const PlaylistIdSchema = z.string().uuid("Invalid playlist ID");
 
 async function getAuthenticatedUserId(): Promise<string> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthenticated");
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-  if (!profile) throw new Error("User profile not found");
-
+  const profile = await requireAuthProfile();
   return profile.id;
 }
 
@@ -37,7 +26,6 @@ export async function subscribeToPlaylist(rawPlaylistId: unknown) {
 
   revalidatePath("/feed");
   revalidatePath("/playlists");
-  revalidatePath(`/playlists`);
 }
 
 export async function unsubscribeFromPlaylist(rawPlaylistId: unknown) {

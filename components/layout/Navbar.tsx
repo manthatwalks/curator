@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { buttonVariants } from "@/components/ui/button";
@@ -22,19 +22,35 @@ const NAV_LINKS = [
   { href: "/playlists", label: "Playlists" },
 ];
 
-export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
+export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const supabase = createClient();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
+        if (!session?.user) {
+          setIsAdmin(false);
+        }
       }
     );
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        supabase
+          .from("users")
+          .select("is_admin")
+          .eq("auth_id", data.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            setIsAdmin(profile?.is_admin ?? false);
+          });
+      }
+    });
     return () => listener.subscription.unsubscribe();
   }, [supabase]);
 

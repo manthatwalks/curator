@@ -3,6 +3,7 @@ import type {
   FetchTweetsOptions,
   FetchTweetsResult,
 } from "./types";
+import type { ApiBudget } from "./budget";
 
 /**
  * ITweetProvider — the single interface all data sources must implement.
@@ -29,4 +30,11 @@ export interface ITweetProvider {
    * Used when an admin adds a new creator to a playlist.
    */
   fetchAccount(handle: string): Promise<CreatorAccount | null>;
+
+  /**
+   * Get current API budget status.
+   * Only meaningful for providers that consume an external API (XApiProvider).
+   * SeedProvider returns unlimited budget.
+   */
+  getBudget(): Promise<ApiBudget>;
 }

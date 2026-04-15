@@ -34,3 +34,10 @@ export type {
   FetchTweetsOptions,
   FetchTweetsResult,
 } from "./types";
+export type { ApiBudget } from "./budget";
+export {
+  TweetProviderError,
+  RateLimitError,
+  BudgetExceededError,
+  ApiResponseError,
+} from "./errors";

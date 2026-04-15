@@ -4,25 +4,14 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/supabase/auth";
 import { slugify } from "@/lib/utils";
 
 // ─── Auth guard ───────────────────────────────────────────────────────────────
 
 async function assertAdmin() {
+  const profile = await requireAdmin();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthenticated");
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id, is_admin")
-    .eq("auth_id", user.id)
-    .single();
-
-  if (!profile?.is_admin) throw new Error("Forbidden: admin only");
-
   return { supabase, adminUserId: profile.id };
 }
 
@@ -78,7 +67,7 @@ export async function createPlaylist(formData: FormData) {
   if (error) throw new Error(`Create playlist failed: ${error.message}`);
 
   revalidatePath("/");
-  revalidatePath("/playlists");
+  revalidatePath("/playlists", "layout");
   revalidatePath("/admin");
   redirect(`/admin/playlists/${playlist.id}/edit`);
 }
@@ -110,7 +99,7 @@ export async function updatePlaylist(playlistId: string, formData: FormData) {
   if (error) throw new Error(`Update playlist failed: ${error.message}`);
 
   revalidatePath("/");
-  revalidatePath("/playlists");
+  revalidatePath("/playlists", "layout");
   revalidatePath("/admin");
 }
 
@@ -126,7 +115,7 @@ export async function deletePlaylist(playlistId: string) {
   if (error) throw new Error(`Delete playlist failed: ${error.message}`);
 
   revalidatePath("/");
-  revalidatePath("/playlists");
+  revalidatePath("/playlists", "layout");
   revalidatePath("/admin");
   redirect("/admin");
 }

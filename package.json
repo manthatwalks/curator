@@ -9,7 +9,10 @@
     "lint": "eslint",
     "seed": "tsx supabase/seed.ts",
     "seed:reset": "tsx supabase/seed.ts --reset",
-    "db:types": "supabase gen types typescript --project-id cgttggkwzdixhsmmqwjv > types/database.ts"
+    "db:types": "supabase gen types typescript --project-id cgttggkwzdixhsmmqwjv > types/database.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed --project=chromium"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -30,6 +33,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

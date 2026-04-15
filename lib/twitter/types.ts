@@ -26,4 +26,6 @@ export interface FetchTweetsResult {
   tweets: TweetData[];
   /** null when there are no more results */
   nextCursor: string | null;
+  /** Number of API reads consumed (for budget tracking) */
+  readsConsumed: number;
 }

@@ -1,11 +1,11 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 import { notFound } from "next/navigation";
-import Image from "next/image";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { extractCount } from "@/lib/supabase/count";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TweetCard from "@/components/feed/TweetCard";
-import SubscribeButton from "@/components/playlists/SubscribeButton";
+import PlaylistSubscribeSection from "@/components/playlists/PlaylistSubscribeSection";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -13,7 +13,7 @@ interface Props {
 
 export default async function PlaylistDetailPage({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Fetch playlist + accounts in one query
   const { data: playlist } = await supabase
@@ -42,9 +42,7 @@ export default async function PlaylistDetailPage({ params }: Props) {
     avatar_url: string | null;
   }[];
 
-  const subscriberCount =
-    (playlist.playlist_subscriptions?.[0] as unknown as { count: number } | undefined)
-      ?.count ?? 0;
+  const subscriberCount = extractCount(playlist.playlist_subscriptions);
 
   // Fetch recent tweets from each account in the playlist (preview, 3 per account)
   const accountIds = accounts.map((a) => a.id);
@@ -70,32 +68,6 @@ export default async function PlaylistDetailPage({ params }: Props) {
     },
   }));
 
-  // Auth — check subscription state
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let isSubscribed = false;
-  let userId: string | null = null;
-
-  if (user) {
-    const { data: profile } = await supabase
-      .from("users")
-      .select("id")
-      .eq("auth_id", user.id)
-      .single();
-    if (profile) {
-      userId = profile.id;
-      const { data: sub } = await supabase
-        .from("playlist_subscriptions")
-        .select("is_active")
-        .eq("user_id", profile.id)
-        .eq("playlist_id", playlist.id)
-        .single();
-      isSubscribed = sub?.is_active ?? false;
-    }
-  }
-
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10">
       {/* Header */}
@@ -117,12 +89,7 @@ export default async function PlaylistDetailPage({ params }: Props) {
           </p>
         </div>
 
-        {user && userId && (
-          <SubscribeButton
-            playlistId={playlist.id}
-            initialSubscribed={isSubscribed}
-          />
-        )}
+        <PlaylistSubscribeSection playlistId={playlist.id} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

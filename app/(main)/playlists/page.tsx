@@ -1,10 +1,11 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
-import { createClient } from "@/lib/supabase/server";
-import PlaylistCard from "@/components/playlists/PlaylistCard";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { extractCount } from "@/lib/supabase/count";
+import PlaylistGridWithSubs from "@/components/playlists/PlaylistGridWithSubs";
 
 export default async function PlaylistsPage() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: playlists } = await supabase
     .from("playlists")
@@ -16,34 +17,14 @@ export default async function PlaylistsPage() {
     .eq("is_public", true)
     .order("created_at", { ascending: false });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let subscribedIds = new Set<string>();
-  if (user) {
-    const { data: profile } = await supabase
-      .from("users")
-      .select("id")
-      .eq("auth_id", user.id)
-      .single();
-    if (profile) {
-      const { data: subs } = await supabase
-        .from("playlist_subscriptions")
-        .select("playlist_id")
-        .eq("user_id", profile.id)
-        .eq("is_active", true);
-      subscribedIds = new Set((subs ?? []).map((s) => s.playlist_id));
-    }
-  }
-
   const enriched = (playlists ?? []).map((p) => ({
-    ...p,
-    subscriberCount:
-      (p.playlist_subscriptions?.[0] as unknown as { count: number } | undefined)
-        ?.count ?? 0,
-    accountCount:
-      (p.playlist_accounts?.[0] as unknown as { count: number } | undefined)?.count ?? 0,
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    cover_emoji: p.cover_emoji,
+    subscriberCount: extractCount(p.playlist_subscriptions),
+    accountCount: extractCount(p.playlist_accounts),
   }));
 
   return (
@@ -60,15 +41,7 @@ export default async function PlaylistsPage() {
           No playlists yet — check back soon.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {enriched.map((p) => (
-            <PlaylistCard
-              key={p.id}
-              playlist={p}
-              isSubscribed={subscribedIds.has(p.id)}
-            />
-          ))}
-        </div>
+        <PlaylistGridWithSubs playlists={enriched} />
       )}
     </div>
   );

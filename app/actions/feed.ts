@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireAuthProfile } from "@/lib/supabase/auth";
 import type { TweetCardData } from "@/components/feed/TweetCard";
 
 export interface FeedCursor {
@@ -20,19 +21,8 @@ export interface FeedPageResult {
 export async function getFeedPage(
   cursor?: FeedCursor
 ): Promise<FeedPageResult> {
+  const profile = await requireAuthProfile();
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthenticated");
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id")
-    .eq("auth_id", user.id)
-    .single();
-  if (!profile) throw new Error("User profile not found");
 
   const LIMIT = 20;
 
@@ -69,7 +59,7 @@ export async function getFeedPage(
   const enriched: TweetCardData[] = tweets.map((t) => ({
     id: t.id,
     text: t.text,
-    media_urls: Array.isArray(t.media_urls) ? (t.media_urls as string[]) : [],
+    media_urls: t.media_urls ?? [],
     published_at: t.published_at,
     twitter_accounts: accountMap.get(t.twitter_account_id) ?? {
       handle: "unknown",

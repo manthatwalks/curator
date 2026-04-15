@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Link from "next/link";
 import { getFeedPage, type FeedCursor } from "@/app/actions/feed";
 import TweetCard, { type TweetCardData } from "./TweetCard";
 import InfiniteScroll from "./InfiniteScroll";
@@ -42,9 +43,9 @@ export default function FeedList({
         <p className="text-lg text-muted-foreground">Your feed is empty.</p>
         <p className="text-sm text-muted-foreground">
           Subscribe to playlists on the{" "}
-          <a href="/playlists" className="text-primary hover:underline">
+          <Link href="/playlists" className="text-primary hover:underline">
             Playlists
-          </a>{" "}
+          </Link>{" "}
           page to start seeing content here.
         </p>
       </div>

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthProfile } from "@/lib/supabase/auth";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,18 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { createPlaylist } from "@/app/actions/admin";
 
 export default async function NewPlaylistPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("is_admin")
-    .eq("auth_id", user.id)
-    .single();
-  if (!profile?.is_admin) redirect("/");
+  const profile = await getAuthProfile();
+  if (!profile) redirect("/login");
+  if (!profile.is_admin) redirect("/");
 
   return (
     <div className="max-w-xl mx-auto px-4 sm:px-6 py-10 space-y-8">

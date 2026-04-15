@@ -12,6 +12,24 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      api_usage: {
+        Row: {
+          period: string;
+          read_count: number;
+          updated_at: string;
+        };
+        Insert: {
+          period: string;
+          read_count?: number;
+          updated_at?: string;
+        };
+        Update: {
+          period?: string;
+          read_count?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       users: {
         Row: {
           id: string;
@@ -186,7 +204,7 @@ export interface Database {
           twitter_account_id: string;
           twitter_id: string;
           text: string;
-          media_urls: Json;
+          media_urls: string[];
           published_at: string;
           fetched_at: string;
         };
@@ -195,7 +213,7 @@ export interface Database {
           twitter_account_id: string;
           twitter_id: string;
           text: string;
-          media_urls?: Json;
+          media_urls?: string[];
           published_at: string;
           fetched_at?: string;
         };
@@ -204,7 +222,7 @@ export interface Database {
           twitter_account_id?: string;
           twitter_id?: string;
           text?: string;
-          media_urls?: Json;
+          media_urls?: string[];
           published_at?: string;
           fetched_at?: string;
         };
@@ -230,6 +248,12 @@ export interface Database {
           p_cursor_id?: string | null;
         };
         Returns: Database["public"]["Tables"]["tweets"]["Row"][];
+      };
+      cleanup_stale_subscriptions: {
+        Args: {
+          p_retention_days?: number;
+        };
+        Returns: number;
       };
     };
     Enums: Record<string, never>;

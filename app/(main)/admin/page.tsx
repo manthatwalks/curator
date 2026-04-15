@@ -3,24 +3,18 @@ export const dynamic = "force-dynamic";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthProfile } from "@/lib/supabase/auth";
+import { extractCount } from "@/lib/supabase/count";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { deletePlaylist } from "@/app/actions/admin";
 
 export default async function AdminPage() {
+  const profile = await getAuthProfile();
+  if (!profile) redirect("/login");
+  if (!profile.is_admin) redirect("/");
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("is_admin")
-    .eq("auth_id", user.id)
-    .single();
-  if (!profile?.is_admin) redirect("/");
-
   const { data: playlists } = await supabase
     .from("playlists")
     .select(
@@ -49,12 +43,8 @@ export default async function AdminPage() {
         ) : (
           <ul className="space-y-2">
             {playlists.map((p) => {
-              const accountCount =
-                (p.playlist_accounts?.[0] as unknown as { count: number } | undefined)
-                  ?.count ?? 0;
-              const subscriberCount =
-                (p.playlist_subscriptions?.[0] as unknown as { count: number } | undefined)
-                  ?.count ?? 0;
+              const accountCount = extractCount(p.playlist_accounts);
+              const subscriberCount = extractCount(p.playlist_subscriptions);
 
               return (
                 <li

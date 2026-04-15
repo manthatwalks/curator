@@ -43,12 +43,26 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Protect /admin — middleware layer (server actions also check is_admin column)
-  if (!user && pathname.startsWith("/admin")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(url);
+  // Protect /admin — proxy layer (server actions also check is_admin column)
+  if (pathname.startsWith("/admin")) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirectTo", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    // Defense-in-depth: verify is_admin at the proxy layer so non-admins
+    // cannot even see admin page HTML. Server actions also call assertAdmin().
+    const { data: profile } = await supabase
+      .from("users")
+      .select("is_admin")
+      .eq("auth_id", user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      return NextResponse.redirect(new URL("/feed", request.url));
+    }
   }
 
   return supabaseResponse;
