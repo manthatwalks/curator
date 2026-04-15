@@ -1,7 +1,7 @@
 export const revalidate = 60;
 
 import { notFound } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createPublicClient } from "@/lib/supabase/public";
 import { extractCount } from "@/lib/supabase/count";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TweetCard from "@/components/feed/TweetCard";
@@ -13,7 +13,7 @@ interface Props {
 
 export default async function PlaylistDetailPage({ params }: Props) {
   const { slug } = await params;
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
 
   // Fetch playlist + accounts in one query
   const { data: playlist } = await supabase

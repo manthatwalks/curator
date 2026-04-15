@@ -1,11 +1,11 @@
 export const revalidate = 60;
 
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createPublicClient } from "@/lib/supabase/public";
 import { extractCount } from "@/lib/supabase/count";
 import PlaylistGridWithSubs from "@/components/playlists/PlaylistGridWithSubs";
 
 export default async function PlaylistsPage() {
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
 
   const { data: playlists } = await supabase
     .from("playlists")

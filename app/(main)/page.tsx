@@ -1,12 +1,12 @@
 export const revalidate = 60;
 
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createPublicClient } from "@/lib/supabase/public";
 import { extractCount } from "@/lib/supabase/count";
 import PlaylistGridWithSubs from "@/components/playlists/PlaylistGridWithSubs";
 import AuthAwareCTA from "@/components/playlists/AuthAwareCTA";
 
 export default async function DiscoverPage() {
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
 
   const { data: playlists } = await supabase
     .from("playlists")
