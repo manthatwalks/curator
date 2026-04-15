@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -27,9 +28,12 @@ export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const supabase = useMemo(() => createClient(), []);
+  const supabaseRef = useRef<SupabaseClient | null>(null);
 
   useEffect(() => {
+    const supabase = createClient();
+    supabaseRef.current = supabase;
+
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
@@ -52,10 +56,11 @@ export default function Navbar() {
       }
     });
     return () => listener.subscription.unsubscribe();
-  }, [supabase]);
+  }, []);
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    if (!supabaseRef.current) return;
+    await supabaseRef.current.auth.signOut();
     router.push("/");
     router.refresh();
   }
