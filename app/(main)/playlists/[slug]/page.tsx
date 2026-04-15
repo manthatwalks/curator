@@ -13,7 +13,13 @@ interface Props {
 
 export default async function PlaylistDetailPage({ params }: Props) {
   const { slug } = await params;
-  const supabase = createPublicClient();
+
+  let supabase;
+  try {
+    supabase = createPublicClient();
+  } catch {
+    notFound();
+  }
 
   // Fetch playlist + accounts in one query
   const { data: playlist } = await supabase
