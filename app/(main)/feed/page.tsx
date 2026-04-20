@@ -32,7 +32,7 @@ export default async function FeedPage() {
         <h1 className="text-xl font-semibold tracking-tight">Your feed</h1>
         {initialTweets.length === 0 && (
           <Link
-            href="/playlists"
+            href="/discover"
             className="text-sm text-primary font-medium hover:underline"
           >
             Browse playlists →

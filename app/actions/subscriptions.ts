@@ -25,7 +25,7 @@ export async function subscribeToPlaylist(rawPlaylistId: unknown) {
   if (error) throw new Error(`Subscribe failed: ${error.message}`);
 
   revalidatePath("/feed");
-  revalidatePath("/playlists");
+  revalidatePath("/discover");
 }
 
 export async function unsubscribeFromPlaylist(rawPlaylistId: unknown) {
@@ -42,5 +42,5 @@ export async function unsubscribeFromPlaylist(rawPlaylistId: unknown) {
   if (error) throw new Error(`Unsubscribe failed: ${error.message}`);
 
   revalidatePath("/feed");
-  revalidatePath("/playlists");
+  revalidatePath("/discover");
 }

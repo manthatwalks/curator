@@ -67,6 +67,7 @@ export async function createPlaylist(formData: FormData) {
   if (error) throw new Error(`Create playlist failed: ${error.message}`);
 
   revalidatePath("/");
+  revalidatePath("/discover");
   revalidatePath("/playlists", "layout");
   revalidatePath("/admin");
   redirect(`/admin/playlists/${playlist.id}/edit`);
@@ -99,6 +100,7 @@ export async function updatePlaylist(playlistId: string, formData: FormData) {
   if (error) throw new Error(`Update playlist failed: ${error.message}`);
 
   revalidatePath("/");
+  revalidatePath("/discover");
   revalidatePath("/playlists", "layout");
   revalidatePath("/admin");
 }
@@ -115,6 +117,7 @@ export async function deletePlaylist(playlistId: string) {
   if (error) throw new Error(`Delete playlist failed: ${error.message}`);
 
   revalidatePath("/");
+  revalidatePath("/discover");
   revalidatePath("/playlists", "layout");
   revalidatePath("/admin");
   redirect("/admin");

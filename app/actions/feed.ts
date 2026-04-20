@@ -58,6 +58,7 @@ export async function getFeedPage(
 
   const enriched: TweetCardData[] = tweets.map((t) => ({
     id: t.id,
+    twitter_id: t.twitter_id,
     text: t.text,
     media_urls: t.media_urls ?? [],
     published_at: t.published_at,

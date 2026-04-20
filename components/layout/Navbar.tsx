@@ -18,9 +18,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: "/", label: "Discover" },
   { href: "/feed", label: "Feed", requiresAuth: true },
-  { href: "/playlists", label: "Playlists" },
+  { href: "/discover", label: "Discover" },
 ];
 
 export default function Navbar() {

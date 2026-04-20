@@ -1,6 +1,7 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,23 +12,26 @@ import {
 interface SubscribeButtonProps {
   playlistId: string;
   initialSubscribed: boolean;
+  onToggle?: (subscribed: boolean) => void;
 }
 
 export default function SubscribeButton({
   playlistId,
   initialSubscribed,
+  onToggle,
 }: SubscribeButtonProps) {
   const [isPending, startTransition] = useTransition();
-  const [isSubscribed, setOptimisticSubscribed] = useOptimistic(
-    initialSubscribed,
-    (_state, newValue: boolean) => newValue
-  );
+  const [isSubscribed, setIsSubscribed] = useState(initialSubscribed);
+  const router = useRouter();
 
   function handleToggle() {
     const nextValue = !isSubscribed;
 
+    // Optimistic update — immediate feedback
+    setIsSubscribed(nextValue);
+    onToggle?.(nextValue);
+
     startTransition(async () => {
-      setOptimisticSubscribed(nextValue);
       try {
         if (nextValue) {
           await subscribeToPlaylist(playlistId);
@@ -36,9 +40,12 @@ export default function SubscribeButton({
           await unsubscribeFromPlaylist(playlistId);
           toast("Removed from your feed");
         }
+        // Refresh server components so ISR pages pick up the change
+        router.refresh();
       } catch (err) {
         // Revert optimistic update on failure
-        setOptimisticSubscribed(!nextValue);
+        setIsSubscribed(!nextValue);
+        onToggle?.(!nextValue);
         toast.error(err instanceof Error ? err.message : "Something went wrong");
       }
     });

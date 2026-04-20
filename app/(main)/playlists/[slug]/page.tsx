@@ -54,7 +54,7 @@ export default async function PlaylistDetailPage({ params }: Props) {
   const accountIds = accounts.map((a) => a.id);
   const { data: tweets } = await supabase
     .from("tweets")
-    .select("id, text, media_urls, published_at, twitter_account_id")
+    .select("id, twitter_id, text, media_urls, published_at, twitter_account_id")
     .in("twitter_account_id", accountIds.length ? accountIds : ["none"])
     .order("published_at", { ascending: false })
     .limit(15);
@@ -64,6 +64,7 @@ export default async function PlaylistDetailPage({ params }: Props) {
 
   const enrichedTweets = (tweets ?? []).map((t) => ({
     id: t.id,
+    twitter_id: t.twitter_id,
     text: t.text,
     media_urls: Array.isArray(t.media_urls) ? (t.media_urls as string[]) : [],
     published_at: t.published_at,
@@ -95,7 +96,10 @@ export default async function PlaylistDetailPage({ params }: Props) {
           </p>
         </div>
 
-        <PlaylistSubscribeSection playlistId={playlist.id} />
+        <PlaylistSubscribeSection
+          playlistId={playlist.id}
+          playlistSlug={slug}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

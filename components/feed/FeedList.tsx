@@ -43,8 +43,8 @@ export default function FeedList({
         <p className="text-lg text-muted-foreground">Your feed is empty.</p>
         <p className="text-sm text-muted-foreground">
           Subscribe to playlists on the{" "}
-          <Link href="/playlists" className="text-primary hover:underline">
-            Playlists
+          <Link href="/discover" className="text-primary hover:underline">
+            Discover
           </Link>{" "}
           page to start seeing content here.
         </p>
